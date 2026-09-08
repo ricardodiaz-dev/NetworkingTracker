@@ -1,0 +1,42 @@
+{
+  "name": "secure-networking-tracker",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "test": "node --env-file-if-exists=.env.local node_modules/.bin/vitest run",
+    "test:watch": "node --env-file-if-exists=.env.local node_modules/.bin/vitest",
+    "db:push": "node --env-file-if-exists=.env.local scripts/apply-schema.mjs",
+    "db:verify": "node --env-file-if-exists=.env.local scripts/verify-security.mjs",
+    "seed:demo": "node --env-file-if-exists=.env.local scripts/seed-demo.mjs",
+    "test:users": "node --env-file-if-exists=.env.local scripts/ensure-test-users.mjs",
+    "screenshots": "node --env-file-if-exists=.env.local scripts/capture-screenshots.mjs"
+  },
+  "dependencies": {
+    "@neondatabase/neon-js": "^0.7.0-beta",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "next": "^16.3.4",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "tailwind-merge": "^3.6.0",
+    "zod": "^4.5.4"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/node": "^26.4.1",
+    "@types/pg": "^8.23.1",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.5",
+    "pg": "^8.23.0",
+    "postcss": "^8.5.26",
+    "puppeteer-core": "^25.10.0",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.11"
+  }
+}

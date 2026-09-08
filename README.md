@@ -8,7 +8,7 @@ that ownership is enforced by Row Level Security inside Postgres rather than by 
 code, so one user's data is unreachable by another user even if the API layer is bypassed
 entirely.
 
-**Live app:** <!-- TODO: Vercel URL --> _(pending deployment)_
+**Live app:** <https://networking-tracker-puce.vercel.app>
 
 ---
 
@@ -56,9 +56,17 @@ The mobile layout at 375px, where the table becomes cards:
 
 <img src="docs/screenshots/06-contacts-mobile.png" width="260">
 
-These are generated rather than hand-taken: `npm run screenshots` drives a real Chrome
-against a production build, signs in as both fixture accounts, and writes the files to
-`docs/screenshots/`. Re-running it reproduces every image above.
+These are generated rather than hand-taken: `npm run screenshots` drives a real Chrome,
+signs in as both fixture accounts, and writes the files to `docs/screenshots/`. Every image
+above was captured against **the deployed Vercel app**, not a local server:
+
+```bash
+APP_URL=https://networking-tracker-puce.vercel.app npm run screenshots
+```
+
+Because the script signs in, opens the dialog, submits invalid input, re-sorts, signs out,
+and signs back in as a second account, a clean run is itself an end-to-end check of the
+live deployment. Omit `APP_URL` to capture against `localhost:3000` instead.
 
 ## Technology stack
 
@@ -448,10 +456,22 @@ $ npm test
    `NEON_DATA_API_URL`. Deliberately **not** `DATABASE_URL` — the deployed application never
    opens a direct Postgres connection, so giving it an RLS-bypassing credential would only
    create a liability.
-4. In the **Neon Console → Data API → Settings → CORS allowed origins**, add your
-   `https://<project>.vercel.app` domain. Add it to Better Auth's trusted origins too.
-5. Redeploy, then open the public URL in a private window and confirm sign-in works.
-6. Create two accounts and repeat the privacy test against production.
+4. **Add the deployed domain to Neon, or sign-in will fail.** In the **Neon Console → Auth**,
+   add your `https://<project>.vercel.app` origin to the trusted origins. Skipping this is not
+   a subtle failure — Better Auth returns `403 {"code":"INVALID_ORIGIN"}` and nobody can log
+   in, while the rest of the site loads perfectly. Vercel assigns a project *two* stable
+   aliases (a short one and a `<project>-<scope>.vercel.app` one), so add both, and keep
+   `http://localhost:3000` so local development still works. Check **Data API → Settings →
+   CORS allowed origins** too, if it is a specific list rather than `*`.
+5. Open the public URL in a private window and confirm sign-in works.
+6. Repeat the privacy test against production — the whole suite accepts an origin override:
+
+   ```bash
+   APP_URL=https://<project>.vercel.app npm test
+   ```
+
+Note that this project was deployed from the CLI (`vercel --prod`) rather than through
+Vercel's GitHub integration, so pushes to `main` do not redeploy automatically.
 
 ## Grading evidence
 
@@ -464,6 +484,7 @@ $ npm test
 | Invalid input failing safely | [`04-validation-error.png`](docs/screenshots/04-validation-error.png). The blank name produced `PATCH /api/contacts/<id> → 400` with body `{"error":"Please correct the highlighted fields.","fields":{"name":"Name is required."}}` — the message shown in the UI comes from the server, not the browser. |
 | RLS actually enforced | [`npm run db:verify`](#verifying-it-rather-than-trusting-the-file) output above, read from the live Postgres catalog rather than from `schema.sql`. |
 | No secrets in git history | `.env.local` is gitignored and was never staged; `.env.example` contains placeholders only. `DATABASE_URL` is not set in Vercel, and no service key or admin connection exists anywhere in `app/` or `components/`. |
+| Deployed and verified in production | Everything above was re-run against the live Vercel deployment, not just localhost: the full suite passes with `APP_URL=https://networking-tracker-puce.vercel.app npm test` (40/40), and all seven screenshots were captured from the deployed app. |
 
 ## Known limitations
 

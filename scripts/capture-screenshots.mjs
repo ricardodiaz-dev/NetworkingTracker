@@ -67,10 +67,17 @@ async function signIn(page, { email, password }) {
     page.waitForFunction(() => location.pathname === "/contacts", { timeout: 20000 }),
     page.click('button[type="submit"]'),
   ]);
-  // Wait for the list to settle rather than for a table — User B legitimately has none.
+  // Wait for a *positive* terminal state, not merely the absence of the spinner.
+  // "no loading text" is vacuously true in the moment before React mounts the loading
+  // state, which raced fine against localhost but captured a spinner against production.
+  // User B legitimately has no contacts, so an empty state counts as settled too.
   await page.waitForFunction(
-    () => !document.body.textContent.includes("Loading your contacts"),
-    { timeout: 20000 },
+    () => {
+      const text = document.body.textContent;
+      if (text.includes("Loading your contacts")) return false;
+      return Boolean(document.querySelector("table")) || text.includes("No contacts");
+    },
+    { timeout: 30000 },
   );
   await sleep(600);
 }
